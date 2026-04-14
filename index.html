@@ -53,9 +53,6 @@
         <!-- 結果區域 -->
         <div id="result-section" class="hidden mt-4 transition-opacity duration-500">
             <p id="result-message" class="text-2xl font-bold mb-4"></p>
-            <button id="retry-btn" onclick="retry()" class="hidden w-full bg-zinc-700 hover:bg-zinc-600 text-white font-bold py-3 px-6 rounded-lg transition-colors text-lg mb-4">
-                再試一次
-            </button>
 
             <div id="coupon" class="hidden bg-yellow-50 text-yellow-900 p-6 rounded-lg border-2 border-dashed border-yellow-600 relative">
                 <div class="absolute -top-3 -left-3 w-6 h-6 bg-zinc-900 rounded-full"></div>
@@ -143,46 +140,31 @@
             }
         }
 
-        function retry() {
-            document.getElementById('result-section').classList.add('hidden');
-            document.getElementById('result-message').innerText = '';
-            document.getElementById('retry-btn').classList.add('hidden');
-            document.getElementById('answer').value = '';
-            document.getElementById('game-section').classList.remove('hidden');
-        }
-
         function submitAnswer() {
             const answer = document.getElementById('answer').value;
             if (!answer) return;
 
             const today = new Date().toDateString();
-            const alreadyCounted = localStorage.getItem('baker_counted') === today;
+
+            // 鎖定當天，跨日才能再玩
+            localStorage.setItem('baker_last_played', today);
 
             document.getElementById('game-section').classList.add('hidden');
             document.getElementById('result-section').classList.remove('hidden');
 
             const isAnswerCorrect = (answer === '7');
 
-            // 每天只計算一次人次
-            if (!alreadyCounted) {
-                localStorage.setItem('baker_counted', today);
-                incrementCount(isAnswerCorrect);
-            } else if (isAnswerCorrect) {
-                // 重試答對時只更新成功解謎數
-                incrementCount(true);
-            }
+            incrementCount(isAnswerCorrect);
 
             if (isAnswerCorrect) {
-                localStorage.setItem('baker_last_played', today);
                 localStorage.setItem('baker_is_correct', 'true');
                 document.getElementById('result-message').innerText = "恭喜答對！";
-                document.getElementById('result-message').className = "text-2xl font-bold mb-6 text-green-400";
+                document.getElementById('result-message').className = "text-2xl font-bold mb-4 text-green-400";
                 document.getElementById('coupon').classList.remove('hidden');
-                document.getElementById('retry-btn').classList.add('hidden');
             } else {
-                document.getElementById('result-message').innerText = "答錯了，再試一次！";
-                document.getElementById('result-message').className = "text-2xl font-bold mb-6 text-red-400";
-                document.getElementById('retry-btn').classList.remove('hidden');
+                localStorage.setItem('baker_is_correct', 'false');
+                document.getElementById('result-message').innerText = "答錯了，明天再試喔！";
+                document.getElementById('result-message').className = "text-2xl font-bold mb-4 text-red-400";
             }
         }
 
