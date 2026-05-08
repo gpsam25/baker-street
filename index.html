@@ -17,8 +17,8 @@
     </style>
 </head>
 <body class="flex items-center justify-center min-h-screen text-gray-200 p-4">
-    <div class="bg-zinc-900 vintage-border p-8 rounded-xl shadow-2xl max-w-md w-full text-center relative overflow-hidden">
 
+    <div class="bg-zinc-900 vintage-border p-8 rounded-xl shadow-2xl max-w-md w-full text-center relative overflow-hidden">
         <div class="absolute top-0 left-0 w-full h-1 bg-yellow-600"></div>
 
         <h1 class="text-3xl font-bold text-yellow-500 mb-2 tracking-widest">貝克街</h1>
@@ -38,7 +38,7 @@
         </div>
 
         <!-- 遊戲區域 -->
-        <div id="game-section" class="transition-opacity duration-500">
+        <div id="game-section">
             <p class="text-xl mb-6 font-bold tracking-wide">最短距離是幾步？</p>
             <div class="flex justify-center items-center gap-3 mb-8">
                 <input type="number" id="answer" class="w-24 p-3 text-2xl text-center text-black rounded-lg outline-none focus:ring-4 focus:ring-yellow-600 transition-shadow" placeholder="?">
@@ -51,15 +51,13 @@
         </div>
 
         <!-- 結果區域 -->
-        <div id="result-section" class="hidden mt-4 transition-opacity duration-500">
+        <div id="result-section" class="hidden mt-4">
             <p id="result-message" class="text-2xl font-bold mb-4"></p>
-
             <div id="coupon" class="hidden bg-yellow-50 text-yellow-900 p-6 rounded-lg border-2 border-dashed border-yellow-600 relative">
                 <div class="absolute -top-3 -left-3 w-6 h-6 bg-zinc-900 rounded-full"></div>
                 <div class="absolute -top-3 -right-3 w-6 h-6 bg-zinc-900 rounded-full"></div>
                 <div class="absolute -bottom-3 -left-3 w-6 h-6 bg-zinc-900 rounded-full"></div>
                 <div class="absolute -bottom-3 -right-3 w-6 h-6 bg-zinc-900 rounded-full"></div>
-
                 <p class="font-bold text-lg mb-2">🎉 恭喜獲得專屬優惠</p>
                 <p class="text-gray-600 mb-2">請截圖保存此畫面</p>
                 <div class="bg-yellow-200 py-3 rounded mb-2">
@@ -69,11 +67,76 @@
                 <p class="text-sm font-bold mt-3 text-center">結帳請主動向貝克街店員出示</p>
             </div>
         </div>
+
+        <!-- 隱藏管理員按鈕 -->
+        <button onclick="showAdminLogin()" class="absolute bottom-2 right-3 text-zinc-700 hover:text-zinc-500 text-xs transition-colors select-none">🔐</button>
+    </div>
+
+    <!-- 管理員登入 Modal -->
+    <div id="admin-login-modal" class="hidden fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
+        <div class="bg-zinc-900 border border-zinc-600 rounded-xl p-6 w-full max-w-xs text-center">
+            <h3 class="text-lg font-bold text-yellow-500 mb-4">管理員登入</h3>
+            <input type="password" id="admin-password-input"
+                class="w-full p-3 text-black rounded-lg mb-3 outline-none focus:ring-2 focus:ring-yellow-600"
+                placeholder="輸入管理密碼">
+            <p id="admin-login-error" class="text-red-400 text-sm mb-3 hidden">密碼錯誤，請再試一次</p>
+            <div class="flex gap-3">
+                <button onclick="closeAdminLogin()" class="flex-1 bg-zinc-700 hover:bg-zinc-600 text-white py-2 rounded-lg">取消</button>
+                <button onclick="verifyAdmin()" class="flex-1 bg-yellow-700 hover:bg-yellow-600 text-white py-2 rounded-lg font-bold">確認</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 管理員面板 Modal -->
+    <div id="admin-panel-modal" class="hidden fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
+        <div class="bg-zinc-900 border border-zinc-600 rounded-xl p-6 w-full max-w-xs">
+            <h3 class="text-lg font-bold text-yellow-500 mb-6 text-center">管理面板</h3>
+
+            <!-- 標準答案 -->
+            <div class="mb-5">
+                <p class="text-sm text-gray-400 mb-2">標準答案</p>
+                <div class="flex gap-2">
+                    <input type="number" id="new-answer-input"
+                        class="flex-1 p-2 text-black rounded-lg outline-none focus:ring-2 focus:ring-yellow-600"
+                        placeholder="新答案">
+                    <button onclick="setAnswer()" class="bg-yellow-700 hover:bg-yellow-600 text-white px-4 rounded-lg font-bold">更新</button>
+                </div>
+                <p id="answer-status" class="text-xs mt-1 text-gray-400 h-4"></p>
+            </div>
+
+            <!-- 重置計數 -->
+            <div class="mb-5">
+                <p class="text-sm text-gray-400 mb-2">重置計數</p>
+                <div class="flex flex-col gap-2">
+                    <button onclick="resetCount('attempt')" class="bg-zinc-700 hover:bg-zinc-600 text-white py-2 rounded-lg text-sm">重置挑戰人次</button>
+                    <button onclick="resetCount('correct')" class="bg-zinc-700 hover:bg-zinc-600 text-white py-2 rounded-lg text-sm">重置成功解謎</button>
+                    <button onclick="resetCount('all')" class="bg-red-900 hover:bg-red-800 text-white py-2 rounded-lg text-sm font-bold">全部重置</button>
+                </div>
+                <p id="reset-status" class="text-xs mt-2 text-gray-400 h-4"></p>
+            </div>
+
+            <button onclick="closeAdminPanel()" class="w-full bg-zinc-700 hover:bg-zinc-600 text-white py-2 rounded-lg">關閉</button>
+        </div>
     </div>
 
     <script>
-        // ★ 部署 Google Apps Script 後，把網址貼在這裡
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzB_bwdQgzuGeWy0AlpC6qodlWU2RUrReKxVEUM1hIym9FoUN9WkE9W30yUClwoyiuQ/exec';
+
+        let correctAnswer = '7'; // 預設，頁面載入時從 Sheet 讀取
+        let adminToken = '';
+
+        // 自動計算本週優惠券日期（週一 ~ 週日）
+        function getCouponDates() {
+            const now = new Date();
+            const day = now.getDay(); // 0=週日, 1=週一
+            const daysToMonday = day === 0 ? -6 : 1 - day;
+            const monday = new Date(now);
+            monday.setDate(now.getDate() + daysToMonday);
+            const sunday = new Date(monday);
+            sunday.setDate(monday.getDate() + 6);
+            const fmt = d => `${d.getMonth() + 1}/${d.getDate()}`;
+            return `${fmt(monday)} ~ ${fmt(sunday)}`;
+        }
 
         async function fetchWithTimeout(url, ms = 8000) {
             const ctrl = new AbortController();
@@ -100,21 +163,24 @@
             }
         }
 
+        async function fetchAnswer() {
+            try {
+                const data = await fetchWithTimeout(`${SCRIPT_URL}?action=get_answer`);
+                if (data.answer) correctAnswer = String(data.answer);
+            } catch (e) { /* 使用預設答案 */ }
+        }
+
         async function incrementCount(isCorrect) {
             try {
                 const data = await fetchWithTimeout(`${SCRIPT_URL}?action=increment_attempt`);
                 document.getElementById('attempt-count').innerText = data.attempt ?? '—';
-            } catch (e) {
-                console.error('挑戰人次更新失敗', e);
-            }
+            } catch (e) { console.error('挑戰人次更新失敗', e); }
 
             if (isCorrect) {
                 try {
                     const data = await fetchWithTimeout(`${SCRIPT_URL}?action=increment_correct`);
                     document.getElementById('correct-count').innerText = data.correct ?? '—';
-                } catch (e) {
-                    console.error('成功解謎更新失敗', e);
-                }
+                } catch (e) { console.error('成功解謎更新失敗', e); }
             }
         }
 
@@ -124,18 +190,19 @@
             const today = new Date().toDateString();
 
             fetchCounts();
+            fetchAnswer();
+            document.getElementById('coupon-dates').innerText = getCouponDates();
 
             if (lastPlayed === today) {
                 document.getElementById('game-section').classList.add('hidden');
                 document.getElementById('result-section').classList.remove('hidden');
-
                 if (isCorrect === 'true') {
                     document.getElementById('result-message').innerText = "您今日已挑戰成功！";
-                    document.getElementById('result-message').className = "text-2xl font-bold mb-6 text-green-400";
+                    document.getElementById('result-message').className = "text-2xl font-bold mb-4 text-green-400";
                     document.getElementById('coupon').classList.remove('hidden');
                 } else {
                     document.getElementById('result-message').innerText = "本日回答次數已達上限";
-                    document.getElementById('result-message').className = "text-2xl font-bold mb-6 text-red-400";
+                    document.getElementById('result-message').className = "text-2xl font-bold mb-4 text-red-400";
                 }
             }
         }
@@ -145,8 +212,6 @@
             if (!answer) return;
 
             const today = new Date().toDateString();
-
-            // 鎖定當天，跨日才能再玩
             localStorage.setItem('baker_last_played', today);
 
             document.getElementById('game-section').classList.add('hidden');
@@ -167,6 +232,88 @@
                 document.getElementById('result-message').className = "text-2xl font-bold mb-4 text-red-400";
             }
         }
+
+        // ── 管理員功能 ──────────────────────────────
+
+        function showAdminLogin() {
+            document.getElementById('admin-login-modal').classList.remove('hidden');
+            document.getElementById('admin-password-input').value = '';
+            document.getElementById('admin-login-error').classList.add('hidden');
+            setTimeout(() => document.getElementById('admin-password-input').focus(), 100);
+        }
+
+        function closeAdminLogin() {
+            document.getElementById('admin-login-modal').classList.add('hidden');
+        }
+
+        async function verifyAdmin() {
+            const password = document.getElementById('admin-password-input').value;
+            if (!password) return;
+            try {
+                const data = await fetchWithTimeout(
+                    `${SCRIPT_URL}?action=admin&password=${encodeURIComponent(password)}&admin_action=get_info`
+                );
+                if (data.error) {
+                    document.getElementById('admin-login-error').classList.remove('hidden');
+                    return;
+                }
+                adminToken = password;
+                document.getElementById('attempt-count').innerText = data.attempt ?? '—';
+                document.getElementById('correct-count').innerText = data.correct ?? '—';
+                document.getElementById('new-answer-input').value = data.answer ?? '';
+                closeAdminLogin();
+                document.getElementById('admin-panel-modal').classList.remove('hidden');
+            } catch (e) {
+                document.getElementById('admin-login-error').classList.remove('hidden');
+            }
+        }
+
+        function closeAdminPanel() {
+            document.getElementById('admin-panel-modal').classList.add('hidden');
+            adminToken = '';
+        }
+
+        async function setAnswer() {
+            const newAnswer = document.getElementById('new-answer-input').value.trim();
+            if (!newAnswer) return;
+            const statusEl = document.getElementById('answer-status');
+            statusEl.innerText = '更新中...';
+            try {
+                const data = await fetchWithTimeout(
+                    `${SCRIPT_URL}?action=admin&password=${encodeURIComponent(adminToken)}&admin_action=set_answer&value=${encodeURIComponent(newAnswer)}`
+                );
+                if (data.error) { statusEl.innerText = '更新失敗'; return; }
+                correctAnswer = newAnswer;
+                statusEl.innerText = `✓ 已更新為 ${newAnswer}`;
+            } catch (e) {
+                statusEl.innerText = '更新失敗';
+            }
+        }
+
+        async function resetCount(type) {
+            const labels = { attempt: '挑戰人次', correct: '成功解謎', all: '全部計數' };
+            if (!confirm(`確定要重置${labels[type]}嗎？此操作無法復原。`)) return;
+            const statusEl = document.getElementById('reset-status');
+            statusEl.innerText = '重置中...';
+            try {
+                const data = await fetchWithTimeout(
+                    `${SCRIPT_URL}?action=admin&password=${encodeURIComponent(adminToken)}&admin_action=reset_${type}`
+                );
+                if (data.error) { statusEl.innerText = '重置失敗'; return; }
+                document.getElementById('attempt-count').innerText = data.attempt ?? '0';
+                document.getElementById('correct-count').innerText = data.correct ?? '0';
+                statusEl.innerText = `✓ ${labels[type]}已重置為 0`;
+            } catch (e) {
+                statusEl.innerText = '重置失敗';
+            }
+        }
+
+        // Enter 鍵觸發登入確認
+        document.addEventListener('keydown', e => {
+            if (e.key === 'Enter' && !document.getElementById('admin-login-modal').classList.contains('hidden')) {
+                verifyAdmin();
+            }
+        });
 
         window.onload = checkStatus;
     </script>
